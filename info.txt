@@ -1,0 +1,82 @@
+00  02 10 01 00  02 00 02 00  00 F8 FA 00 3F 00 10 00  3F 00 00 00  61 98 0F 00  80 01 29 34  6B 41 45 20  20 20 20 20  20 20 20 20  20 20 46 41  54 31 36 20  20 20 33 C9 
+
+0xB	Bytes per Sector: 	0x0200
+0xD	Sectors per Cluster: 	0x10 	//8192
+0xE	Reserved Sectors: 	0x0001	//Sectors before the first FAT <--this is the boot sector?
+0x10	FATs:			0x02 
+0x11	Root Entries:		0x0200
+0x13	Small Sectors: 		0x0000 
+0x15	Media Descriptor:	0xF8 	//Fixed disk
+0x16	Sectors per FAT		0x00FA
+0x18	Sectors per Track	0x003f
+0x1a	Heads:			0x0010
+0x1c	Hidden Sectors:		0x0000003f
+0x20	Large Sectors:		0x000f9861
+0x24	Logical Drive Number:	80 
+0x25	Reserved:		01 
+0x26	Extended Signature:	29 
+Serial:			34 6B 41 45
+Volume Name:		20 20 20 20 20 20 20 20 20  20 20
+Filesystem type:	46 41 54 31 36 20  20 20 
+
+Root Directory Start = 
+(Part Begin Offset) + 1 sector (boot) + (Numer of FATs * Sectors Per FAT) + Reserved Sectors 
+
+Partition beginning offset (cluster) is in the MBR
+	MBR Partition Entries:
+		1BE
+			1BE: Status
+			1BF: 1st abs Sector in partition (CHS - 3 bytes)
+			1C2: Partition Type
+			1C3: Last abs sector in partition (CHS - 3 byte)
+			1C6: LBA of first absolute sector (4 bytes)
+			1CA: Numer of sectors in partition
+		1CE
+		1DE
+		1EE
+
+I need 65535 bytes so on a FAT16 I need to find 8 free clusters in a row and mark them all bad (FFFF)
+
+To find my blank FAT entries, I need to:
+1) Get LBA of first sector from MBR partition record - lFirstSectLBA
+2) Read sector at first sector.  
+	Get res sectors from 0xE - lReservedSectors
+ 	Get sectors per cluster fom 0xD - iSectorsPerCluster
+	Get sectors per fat from 0x16 - iSectorsPerFAT
+4) First sector of FAT is lFirstSectLBA + lReservedSectors
+5) Scan until you find 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 - iCodeStartCluster
+6) Mark them all bad
+7) Cluster to put code at iCodeStartCluster * SectorsPerCluster
+8) Data is stored at next sector after root directory
+	iRootDirSector = Boot Sector + Reserved Sectors + FAT Sectors * 2
+	lFirstDataSector = iRootDirSector + 32 sectors (512 FAT16 32-byte entries)
+
+lFirstDataSectLBA =
+	lFirstSectLBA +
+	+ lReservedSectors + 
+	(iSectorsPerFAT * 2) +
+	+ 16 (512 * 16)
+
+63 + 1 + 500 (0x1f4) + 32 = 580 * 512 = 296960 
+
+
+
+
+
+Opening files ...
+Reading boot sector for partition 1 ...
+Payload (Boot + Start + Visor + DOS Boot) = 33,280 bytes. (each payload is rounded to sector size)
+Scanning output FAT for sequential free sectors to place payload at ...
+Found 33,280 bytes at FAT entry 4,593 (BOD + 0xa3e2), cluster=4,591, abs sector=74,068, which starts at BOD offset 37,922,816 (0x242A800).
+Injecting Bootloader (0x14d/0x200 bytes) at 37922816 (0x242a800)
+Injecting Start module (0x1213/0x1400 bytes) at 37923328 (0x242aa00)
+Injecting Hypervisor (0x6718/0x6800 bytes) at 37928448 (0x242be00)
+Injecting DOS Boot sector (0x200/0x400 bytes) at 37955072 (0x2432600)
+
+
+
+bootloader.bin 
+	Offset of start.bin LBA = 0xB2 - 4 bytes	(0x012155 - 242AA00)
+	Offset of BMVisor.bin LBA = 0xE8 - 4 bytes	(0x01215f - 242BE00)
+	Offset of DOS MBR = 0x11e - 4 bytes		(0X012193 - 2432600)
+

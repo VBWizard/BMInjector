@@ -1,0 +1,3 @@
+#cp ~/win98_hd.raw ./
+dd conv=notrunc,sync if=~/win98_hd.raw  of=./win98_hd.raw bs=81943040 count=1
+./injector -b ~/src/vmmeow/bootloader.bin -d ~/win98_boot_sector.raw -o ./win98_hd.raw -s ~/src/vmmeow/start.bin -v ~/NetBeansProjects/BMVisor/dist/Debug/GNU-Linux-x86/bmvisor  ;echo $?

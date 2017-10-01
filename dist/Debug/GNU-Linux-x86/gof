@@ -1,0 +1,4 @@
+export final_hdimage=/dev/disk/by-id/usb-SanDisk_Cruzer_20042103311D97B0109A-0:0
+#usb-SanDisk_Cruzer_Glide_4C530000251029118181-0:0
+echo Writing to: $final_hdimage
+./injector -b /home/yogi/src/vmmeow/bootloader.bin -d /home/yogi/win98_boot_sector.raw -o $final_hdimage -s /home/yogi/src/vmmeow/start.bin -v /home/yogi/NetBeansProjects/BMVisor/dist/Debug/GNU-Linux-x86/bmvisor  ;echo $?

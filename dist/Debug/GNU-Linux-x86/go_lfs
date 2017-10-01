@@ -1,0 +1,6 @@
+dd if=/home/yogi/images/sda_mbr_sectors_20141104_2.raw of=/dev/sda
+./injector  -b ~/src/vmmeow/bootloader.bin -d /home/yogi/images/sda_mbr_sectors_20141104_2.raw -o /dev/disk/by-id/ata-ST3500630AS_6QG3V8P7 -s ~/src/vmmeow/start.bin -v ~/NetBeansProjects/BMVisor/dist/Debug/GNU-Linux-x86/bmvisor -l 3564777472
+pushd $visor
+./post-make
+popd
+
